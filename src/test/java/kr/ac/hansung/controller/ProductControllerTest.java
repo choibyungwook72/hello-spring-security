@@ -66,6 +66,24 @@ class ProductControllerTest {
     }
 
     @Test
+    @WithMockUser(roles = "USER")
+    @DisplayName("인증된 사용자 - 상품명 검색과 페이징 조회 성공 (200)")
+    void listProducts_withKeyword_returns200() throws Exception {
+        given(productService.searchProducts(eq("삼성전자"), any(Pageable.class))).willReturn(new PageImpl<>(List.of(
+            new Product("삼성전자 갤럭시 S25", 1290000, "최신 플래그십 스마트폰", 100)
+        )));
+
+        mockMvc.perform(get("/products")
+                .param("keyword", "삼성전자")
+                .param("page", "0")
+                .param("size", "5"))
+            .andExpect(status().isOk())
+            .andExpect(view().name("products/list"))
+            .andExpect(model().attributeExists("productPage"))
+            .andExpect(model().attribute("keyword", "삼성전자"));
+    }
+
+    @Test
     @WithAnonymousUser
     @DisplayName("비인증 사용자 - 상품 목록 접근 시 로그인 페이지로 리다이렉트")
     void listProducts_anonymous_redirectsToLogin() throws Exception {
